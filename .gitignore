@@ -1,0 +1,10 @@
+/build*/
+/reverbulator-ui*.png
+/.vs/
+/.vscode/
+*.user
+*.suo
+*.pdb
+*.ilk
+*.log
+.DS_Store

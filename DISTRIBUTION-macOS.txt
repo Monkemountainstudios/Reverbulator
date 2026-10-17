@@ -1,0 +1,21 @@
+REVERBULATOR SRS-4 — macOS INSTALLATION
+
+This universal build supports Apple Silicon and Intel Macs.
+
+STANDALONE
+Open "Reverbulator SRS-4.app" directly.
+
+VST3
+In Finder choose Go > Go to Folder, enter:
+  ~/Library/Audio/Plug-Ins/VST3
+Then copy "Reverbulator SRS-4.vst3" into that folder.
+
+AUDIO UNIT
+In Finder choose Go > Go to Folder, enter:
+  ~/Library/Audio/Plug-Ins/Components
+Then copy "Reverbulator SRS-4.component" into that folder.
+
+Restart the DAW and rescan plug-ins if Reverbulator does not appear immediately.
+
+This first public build is not Apple-notarized. If macOS blocks it, open
+System Settings > Privacy & Security and choose Open Anyway for Reverbulator.

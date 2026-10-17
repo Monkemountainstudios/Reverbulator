@@ -1,0 +1,121 @@
+name: Build Reverbulator
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Check out Reverbulator
+        uses: actions/checkout@v4
+
+      - name: Check out JUCE 9.0.1
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: 9.0.1
+          path: JUCE
+
+      - name: Configure
+        shell: pwsh
+        run: >-
+          cmake -S . -B build
+          -DREVERBULATOR_JUCE_SOURCE_DIR="${{ github.workspace }}/JUCE"
+
+      - name: Build and test
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --target ReverbulatorDspTests Reverbulator_Standalone Reverbulator_VST3 --parallel 4
+          & "build/ReverbulatorDspTests_artefacts/Release/ReverbulatorDspTests.exe"
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item -LiteralPath "build/Reverbulator_artefacts/Release/Standalone/Reverbulator SRS-4.exe" -Destination package
+          Copy-Item -LiteralPath "build/Reverbulator_artefacts/Release/VST3/Reverbulator SRS-4.vst3" -Destination package -Recurse
+          Compress-Archive -Path package/* -DestinationPath Reverbulator-SRS4-Windows-x64.zip
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reverbulator-SRS4-Windows-x64
+          path: Reverbulator-SRS4-Windows-x64.zip
+          if-no-files-found: error
+
+  macos:
+    name: macOS universal
+    runs-on: macos-15
+    steps:
+      - name: Check out Reverbulator
+        uses: actions/checkout@v4
+
+      - name: Check out JUCE 9.0.1
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: 9.0.1
+          path: JUCE
+
+      - name: Configure universal build
+        run: >-
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          -DREVERBULATOR_JUCE_SOURCE_DIR="${{ github.workspace }}/JUCE"
+
+      - name: Build and test
+        run: |
+          cmake --build build --target ReverbulatorDspTests Reverbulator_Standalone Reverbulator_VST3 Reverbulator_AU --parallel 4
+          ./build/ReverbulatorDspTests_artefacts/Release/ReverbulatorDspTests
+
+      - name: Package unsigned bundles
+        run: |
+          mkdir -p package
+          cp DISTRIBUTION-macOS.txt package/READ-ME-FIRST.txt
+          ditto "build/Reverbulator_artefacts/Release/Standalone/Reverbulator SRS-4.app" "package/Reverbulator SRS-4.app"
+          ditto "build/Reverbulator_artefacts/Release/VST3/Reverbulator SRS-4.vst3" "package/Reverbulator SRS-4.vst3"
+          ditto "build/Reverbulator_artefacts/Release/AU/Reverbulator SRS-4.component" "package/Reverbulator SRS-4.component"
+          ditto -c -k --sequesterRsrc --keepParent package Reverbulator-SRS4-macOS-universal.zip
+
+      - name: Upload macOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reverbulator-SRS4-macOS-universal
+          path: Reverbulator-SRS4-macOS-universal.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish release downloads
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download packaged builds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Reverbulator-SRS4-*
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${{ github.ref_name }}"
+          Reverbulator-SRS4-Windows-x64.zip
+          Reverbulator-SRS4-macOS-universal.zip
+          --repo "${{ github.repository }}"
+          --title "Reverbulator SRS-4 ${{ github.ref_name }}"
+          --generate-notes
