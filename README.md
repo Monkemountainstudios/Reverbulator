@@ -1,5 +1,7 @@
 # Reverbulator SRS-4
 
+![Reverbulator SRS-4 icon](Assets/ReverbulatorIcon.png)
+
 Serial Reverbulator System: a four-macro reverb network that moves from useful
 room ambience into unstable, nested spaces.
 
@@ -155,6 +157,12 @@ changing the DSP build.
 Tagged versions are published as public GitHub Releases, so the Windows and
 macOS ZIP files can be shared as ordinary download links without requiring a
 GitHub account.
+
+## Credits
+
+- Original concept and creative direction: Monke Mountain Studios
+- Software design and development: created in collaboration with OpenAI Codex
+- Images and creative sounding board: ChatGPT
 
 ## License
 

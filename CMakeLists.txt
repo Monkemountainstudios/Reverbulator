@@ -27,6 +27,8 @@ juce_add_plugin(Reverbulator
     COMPANY_NAME "MonkeMountainStudios"
     COMPANY_WEBSITE "https://monkemountainstudios.neocities.org"
     BUNDLE_ID "com.monkemountainstudios.reverbulator"
+    ICON_BIG "Assets/ReverbulatorIcon.png"
+    ICON_SMALL "Assets/ReverbulatorIcon.png"
     PLUGIN_MANUFACTURER_CODE Mnke
     PLUGIN_CODE Srs4
     FORMATS ${REVERBULATOR_FORMATS}
