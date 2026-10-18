@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(Reverbulator VERSION 0.1.0 LANGUAGES C CXX)
+project(Reverbulator VERSION 0.1.1 LANGUAGES C CXX)
 
 set(REVERBULATOR_JUCE_SOURCE_DIR "" CACHE PATH "Path to a JUCE checkout")
 
@@ -23,7 +23,7 @@ if(APPLE)
 endif()
 
 juce_add_plugin(Reverbulator
-    VERSION 0.1.0
+    VERSION ${PROJECT_VERSION}
     COMPANY_NAME "MonkeMountainStudios"
     COMPANY_WEBSITE "https://monkemountainstudios.neocities.org"
     BUNDLE_ID "com.monkemountainstudios.reverbulator"
