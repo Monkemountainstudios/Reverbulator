@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(Reverbulator VERSION 0.1.1 LANGUAGES C CXX)
+project(Reverbulator VERSION 0.1.2 LANGUAGES C CXX)
 
 set(REVERBULATOR_JUCE_SOURCE_DIR "" CACHE PATH "Path to a JUCE checkout")
 
@@ -54,6 +54,7 @@ target_sources(Reverbulator PRIVATE
     Source/PluginEditor.h
     Source/PluginProcessor.cpp
     Source/PluginProcessor.h
+    Source/OutputSafetyLimiter.h
     Source/SerialRouting.h
     Source/StageToneFilter.h
     Source/TotalSpectralReturn.cpp
@@ -126,6 +127,24 @@ target_compile_definitions(ReverbulatorDspTests PRIVATE
 target_link_libraries(ReverbulatorDspTests PRIVATE
     juce::juce_audio_basics
     juce::juce_core
+    juce::juce_dsp
+)
+
+juce_add_console_app(ReverbulatorOutputTests PRODUCT_NAME "Reverbulator Output Tests")
+juce_generate_juce_header(ReverbulatorOutputTests)
+target_sources(ReverbulatorOutputTests PRIVATE
+    Tests/ProcessorOutputTest.cpp
+)
+target_include_directories(ReverbulatorOutputTests PRIVATE Source)
+target_compile_features(ReverbulatorOutputTests PRIVATE cxx_std_17)
+target_compile_definitions(ReverbulatorOutputTests PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+target_link_libraries(ReverbulatorOutputTests PRIVATE
+    Reverbulator
+    juce::juce_audio_processors
+    juce::juce_audio_utils
     juce::juce_dsp
 )
 

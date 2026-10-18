@@ -4,6 +4,7 @@
 #include "ChorusedSpaceLayer.h"
 #include "DigitalSpectralLayer.h"
 #include "GravityBloomLayer.h"
+#include "OutputSafetyLimiter.h"
 #include "SerialRouting.h"
 #include "StageToneFilter.h"
 #include "TotalSpectralReturn.h"
@@ -65,6 +66,7 @@ private:
     GravityBloomLayer gravityBloomLayer;
     TotalSpectralReturn totalSpectralReturn;
     StageToneFilter finalHaloFilter;
+    OutputSafetyLimiter outputSafetyLimiter;
     juce::AudioBuffer<float> dryBuffer;
     juce::AudioBuffer<float> layer1Input;
     juce::AudioBuffer<float> laterFeedbackBus;

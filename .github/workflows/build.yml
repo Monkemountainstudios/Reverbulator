@@ -35,8 +35,9 @@ jobs:
       - name: Build and test
         shell: pwsh
         run: |
-          cmake --build build --config Release --target ReverbulatorDspTests Reverbulator_Standalone Reverbulator_VST3 --parallel 4
+          cmake --build build --config Release --target ReverbulatorDspTests ReverbulatorOutputTests Reverbulator_Standalone Reverbulator_VST3 --parallel 4
           & "build/ReverbulatorDspTests_artefacts/Release/ReverbulatorDspTests.exe"
+          & "build/ReverbulatorOutputTests_artefacts/Release/ReverbulatorOutputTests.exe"
 
       - name: Package
         shell: pwsh
@@ -76,8 +77,9 @@ jobs:
 
       - name: Build and test
         run: |
-          cmake --build build --target ReverbulatorDspTests Reverbulator_Standalone Reverbulator_VST3 Reverbulator_AU --parallel 4
+          cmake --build build --target ReverbulatorDspTests ReverbulatorOutputTests Reverbulator_Standalone Reverbulator_VST3 Reverbulator_AU --parallel 4
           ./build/ReverbulatorDspTests_artefacts/Release/ReverbulatorDspTests
+          ./build/ReverbulatorOutputTests_artefacts/Release/ReverbulatorOutputTests
 
       - name: Package unsigned bundles
         run: |

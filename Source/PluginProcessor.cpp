@@ -88,6 +88,7 @@ void ReverbulatorAudioProcessor::prepareToPlay(double sampleRate, int samplesPer
     gravityBloomLayer.prepare(sampleRate, samplesPerBlock);
     totalSpectralReturn.prepare(sampleRate, samplesPerBlock);
     finalHaloFilter.prepare(sampleRate);
+    outputSafetyLimiter.prepare(sampleRate);
     laterFeedbackBus.setSize(2, samplesPerBlock, false, true, false);
     nextFeedbackBus.setSize(2, samplesPerBlock, false, true, false);
     vectorNextFeedbackBus.setSize(2, samplesPerBlock, false, true, false);
@@ -117,6 +118,7 @@ void ReverbulatorAudioProcessor::releaseResources()
     gravityBloomLayer.reset();
     totalSpectralReturn.reset();
     finalHaloFilter.reset();
+    outputSafetyLimiter.reset();
     laterFeedbackBus.clear();
     nextFeedbackBus.clear();
     vectorNextFeedbackBus.clear();
@@ -334,6 +336,11 @@ void ReverbulatorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
                 dryBuffer.getSample(channel, sample) * dryGain
                 + layer4Output.getSample(channel, sample) * wetGain);
     }
+
+    // The equal-power dry/wet sum can exceed 0 dBFS when a dense wet return
+    // correlates with the dry signal. Keep a stereo-linked safety ceiling on
+    // the complete output; below the ceiling this stage is exactly unity gain.
+    outputSafetyLimiter.process(buffer);
 
     // MASS follows the energy accumulated in the reverb network, not the dry
     // input level. Future layers will be folded into the same measurement.

@@ -134,7 +134,12 @@ by 1 METAL TANK, 2 WARM EMS, 3 METAL STAIRWAY, 4 CHOPPER, 5 WHITE ARCH,
 buttons step through them; the selected name appears briefly to the right.
 After loading programs 1-8, changing any macro or mode turns the digit drum
 red as a modified-preset warning. Reloading a factory program clears it;
-MANUAL remains the unguarded free-edit state.
+MANUAL remains the freely editable state.
+
+A transparent stereo-linked safety limiter follows the complete dry/wet mix
+in every factory program and in MANUAL. It is exactly unity gain below
+-0.3 dBFS, then attenuates only as needed to prevent the final insert output
+from overloading while preserving the stereo image.
 
 ## Configure and build
 
