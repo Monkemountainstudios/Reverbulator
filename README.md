@@ -8,6 +8,8 @@ room ambience into unstable, nested spaces.
 ## Current controls
 
 - MIX
+- INPUT trim (-18 to +6 dB, default -6 dB)
+- OUTPUT trim (-18 to +6 dB, default 0 dB)
 - SPACE
 - MOTION
 - CHAOS
@@ -136,7 +138,16 @@ After loading programs 1-8, changing any macro or mode turns the digit drum
 red as a modified-preset warning. Reloading a factory program clears it;
 MANUAL remains the freely editable state.
 
-A transparent stereo-linked safety limiter follows the complete dry/wet mix
+A smoothed INPUT trim precedes both the dry path and the complete wet network.
+Its -6 dB default gives full-level sources room to excite the serial tanks
+without immediately pinning their nonlinear guards; the upper half of its
+range remains available when deliberate overdrive is wanted. A smoothed OUTPUT
+trim follows the dry/wet mix. Both trims span -18 to +6 dB and remain independent
+of factory-program selection, so gain staging is preserved while auditioning
+presets.
+
+A transparent stereo-linked safety limiter follows the output trim and complete
+dry/wet mix
 in every factory program and in MANUAL. It is exactly unity gain below
 -0.3 dBFS, then attenuates only as needed to prevent the final insert output
 from overloading while preserving the stereo image.

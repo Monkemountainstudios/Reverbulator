@@ -75,17 +75,20 @@ private:
 
     void configureMacro(juce::Slider&, const juce::String&, const char*,
                         std::unique_ptr<SliderAttachment>&);
+    void configureTrim(juce::Slider&, const juce::String&, const char*,
+                       std::unique_ptr<SliderAttachment>&);
     void drawScrew(juce::Graphics&, juce::Point<float>, float, float) const;
 
     ReverbulatorAudioProcessor& processor;
     SrsLookAndFeel lookAndFeel;
-    FineWheelSlider mix, space, motion, chaos;
+    FineWheelSlider inputTrim, outputTrim, mix, space, motion, chaos;
     LampButton body { "BODY" };
     LampButton vectorOrder { "VECTOR" };
     LampButton halo { "HALO" };
     MassMeter massMeter;
     PresetStepper presetStepper;
 
+    std::unique_ptr<SliderAttachment> inputAttachment, outputAttachment;
     std::unique_ptr<SliderAttachment> mixAttachment, spaceAttachment;
     std::unique_ptr<SliderAttachment> motionAttachment, chaosAttachment;
     std::unique_ptr<ButtonAttachment> bodyAttachment, orderAttachment, haloAttachment;

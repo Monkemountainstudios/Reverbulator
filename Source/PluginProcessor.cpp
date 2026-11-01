@@ -72,6 +72,11 @@ ReverbulatorAudioProcessor::createParameterLayout()
     result.push_back(std::make_unique<BoolParameter>("body", "Body", false));
     result.push_back(std::make_unique<BoolParameter>("halo", "Halo", false));
     result.push_back(std::make_unique<BoolParameter>("vectorOrder", "Vector Order", false));
+    // Append new parameters so legacy automation retains the original ordering.
+    result.push_back(std::make_unique<FloatParameter>(
+        "inputTrim", "Input", Range(-18.0f, 6.0f, 0.1f), -6.0f, "dB"));
+    result.push_back(std::make_unique<FloatParameter>(
+        "outputTrim", "Output", Range(-18.0f, 6.0f, 0.1f), 0.0f, "dB"));
     return { result.begin(), result.end() };
 }
 
@@ -96,6 +101,12 @@ void ReverbulatorAudioProcessor::prepareToPlay(double sampleRate, int samplesPer
     totalFeedbackBus.setSize(2, samplesPerBlock, false, true, false);
     nextTotalFeedbackBus.setSize(2, samplesPerBlock, false, true, false);
     combinedFeedbackBus.setSize(2, samplesPerBlock, false, true, false);
+    inputGain.reset(sampleRate, 0.035);
+    inputGain.setCurrentAndTargetValue(juce::Decibels::decibelsToGain(
+        parameters.getRawParameterValue("inputTrim")->load()));
+    outputGain.reset(sampleRate, 0.035);
+    outputGain.setCurrentAndTargetValue(juce::Decibels::decibelsToGain(
+        parameters.getRawParameterValue("outputTrim")->load()));
     mixAmount.reset(sampleRate, 0.035);
     mixAmount.setCurrentAndTargetValue(parameters.getRawParameterValue("mix")->load());
     orderAmount.reset(sampleRate, 0.180);
@@ -185,6 +196,15 @@ void ReverbulatorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     const int samples = buffer.getNumSamples();
     dryBuffer.makeCopyOf(buffer, true);
+    inputGain.setTargetValue(juce::Decibels::decibelsToGain(
+        parameters.getRawParameterValue("inputTrim")->load()));
+    for (int sample = 0; sample < samples; ++sample)
+    {
+        const float gain = inputGain.getNextValue();
+        for (int channel = 0; channel < 2; ++channel)
+            dryBuffer.setSample(channel, sample,
+                dryBuffer.getSample(channel, sample) * gain);
+    }
     layer1Input.setSize(2, samples, false, false, true);
     layer2Input.setSize(2, samples, false, false, true);
     if (laterFeedbackBus.getNumSamples() != samples)
@@ -335,6 +355,15 @@ void ReverbulatorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             buffer.setSample(channel, sample,
                 dryBuffer.getSample(channel, sample) * dryGain
                 + layer4Output.getSample(channel, sample) * wetGain);
+    }
+
+    outputGain.setTargetValue(juce::Decibels::decibelsToGain(
+        parameters.getRawParameterValue("outputTrim")->load()));
+    for (int sample = 0; sample < samples; ++sample)
+    {
+        const float gain = outputGain.getNextValue();
+        for (int channel = 0; channel < 2; ++channel)
+            buffer.setSample(channel, sample, buffer.getSample(channel, sample) * gain);
     }
 
     // The equal-power dry/wet sum can exceed 0 dBFS when a dense wet return

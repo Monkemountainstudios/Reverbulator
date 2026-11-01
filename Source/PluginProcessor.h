@@ -89,6 +89,8 @@ private:
     juce::AudioBuffer<float> layer4MainInput;
     juce::AudioBuffer<float> layer4Layer2Tap;
     juce::AudioBuffer<float> layer4Output;
+    juce::SmoothedValue<float> inputGain;
+    juce::SmoothedValue<float> outputGain;
     juce::SmoothedValue<float> mixAmount;
     juce::SmoothedValue<float> orderAmount;
     juce::SmoothedValue<float> networkActivationAmount;

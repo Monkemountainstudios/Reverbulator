@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(Reverbulator VERSION 0.1.2 LANGUAGES C CXX)
+project(Reverbulator VERSION 0.1.3 LANGUAGES C CXX)
 
 set(REVERBULATOR_JUCE_SOURCE_DIR "" CACHE PATH "Path to a JUCE checkout")
 

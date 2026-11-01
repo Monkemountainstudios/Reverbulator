@@ -438,6 +438,8 @@ ReverbulatorAudioProcessorEditor::ReverbulatorAudioProcessorEditor(
     configureMacro(space, "SPACE", "space", spaceAttachment);
     configureMacro(motion, "MOTION", "motion", motionAttachment);
     configureMacro(chaos, "CHAOS", "chaos", chaosAttachment);
+    configureTrim(inputTrim, "INPUT", "inputTrim", inputAttachment);
+    configureTrim(outputTrim, "OUTPUT", "outputTrim", outputAttachment);
 
     addAndMakeVisible(body);
     addAndMakeVisible(vectorOrder);
@@ -471,6 +473,16 @@ void ReverbulatorAudioProcessorEditor::configureMacro(
     slider.setTooltip(name + " macro");
     addAndMakeVisible(slider);
     attachment = std::make_unique<SliderAttachment>(processor.parameters, parameterId, slider);
+}
+
+void ReverbulatorAudioProcessorEditor::configureTrim(
+    juce::Slider& slider, const juce::String& name, const char* parameterId,
+    std::unique_ptr<SliderAttachment>& attachment)
+{
+    configureMacro(slider, name, parameterId, attachment);
+    slider.setTooltip(name + " trim (-18 to +6 dB)");
+    slider.setPopupDisplayEnabled(true, false, this);
+    slider.setTextValueSuffix(" dB");
 }
 
 void ReverbulatorAudioProcessorEditor::drawScrew(juce::Graphics& graphics,
@@ -600,6 +612,15 @@ void ReverbulatorAudioProcessorEditor::paint(juce::Graphics& graphics)
                           juce::Justification::centred);
     }
 
+    graphics.setFont(condensedFont(11.0f * scale, true));
+    graphics.setColour(warmInk.withAlpha(0.72f));
+    graphics.drawText("INPUT", juce::roundToInt(15.0f * scale),
+                      juce::roundToInt(750.0f * scale), juce::roundToInt(90.0f * scale),
+                      juce::roundToInt(16.0f * scale), juce::Justification::centred);
+    graphics.drawText("OUTPUT", juce::roundToInt(515.0f * scale),
+                      juce::roundToInt(750.0f * scale), juce::roundToInt(90.0f * scale),
+                      juce::roundToInt(16.0f * scale), juce::Justification::centred);
+
     graphics.setFont(condensedFont(8.0f * scale));
     graphics.setColour(warmInk.withAlpha(0.33f));
     graphics.drawText("MONKE MOUNTAIN AUDIO LABORATORY", 0,
@@ -621,10 +642,12 @@ void ReverbulatorAudioProcessorEditor::resized()
     space.setBounds(scaled(384, 165, 164, 184));
     motion.setBounds(scaled(72, 449, 164, 184));
     chaos.setBounds(scaled(384, 449, 164, 184));
+    inputTrim.setBounds(scaled(20, 677, 80, 72));
+    outputTrim.setBounds(scaled(520, 677, 80, 72));
     massMeter.setBounds(scaled(256, 158, 108, 481));
     presetStepper.setBounds(scaled(0, 103, 620, 42));
-    body.setBounds(scaled(74, 685, 132, 58));
-    vectorOrder.setBounds(scaled(244, 685, 132, 58));
-    halo.setBounds(scaled(414, 685, 132, 58));
+    body.setBounds(scaled(112, 689, 120, 52));
+    vectorOrder.setBounds(scaled(250, 689, 120, 52));
+    halo.setBounds(scaled(388, 689, 120, 52));
 }
 

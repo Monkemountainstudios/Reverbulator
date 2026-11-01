@@ -91,33 +91,80 @@ int main()
         }
     dryProcessor.processBlock(dryBuffer, midi);
 
+    const float defaultInputGain = juce::Decibels::decibelsToGain(-6.0f);
     float dryDifference = 0.0f;
     for (int channel = 0; channel < 2; ++channel)
         for (int sample = 0; sample < blockSize; ++sample)
             dryDifference = juce::jmax(dryDifference, std::abs(
                 dryBuffer.getSample(channel, sample)
-                - dryReference.getSample(channel, sample)));
-    std::cout << "Sub-ceiling dry-path maximum difference: "
+                - dryReference.getSample(channel, sample) * defaultInputGain));
+    std::cout << "Default -6 dB dry-path maximum difference: "
               << dryDifference << '\n';
     if (dryDifference > 1.0e-7f)
     {
-        std::cerr << "Safety limiter changed sub-ceiling dry audio\n";
+        std::cerr << "Default input trim or safety limiter changed dry audio\n";
         return 3;
     }
 
-    dryBuffer.clear();
+    ReverbulatorAudioProcessor trimProcessor;
+    if (auto* mix = trimProcessor.parameters.getParameter("mix"))
+        mix->setValueNotifyingHost(0.0f);
+    if (auto* output = trimProcessor.parameters.getParameter("outputTrim"))
+        output->setValueNotifyingHost(output->convertTo0to1(-6.0f));
+    trimProcessor.prepareToPlay(sampleRate, blockSize);
+    juce::AudioBuffer<float> trimBuffer(2, blockSize);
     for (int channel = 0; channel < 2; ++channel)
         for (int sample = 0; sample < blockSize; ++sample)
-            dryBuffer.setSample(channel, sample, channel == 0 ? 1.2f : -1.2f);
-    dryProcessor.processBlock(dryBuffer, midi);
+            trimBuffer.setSample(channel, sample, 0.20f);
+    trimProcessor.processBlock(trimBuffer, midi);
+    const float expectedTrimmed = 0.20f * defaultInputGain * defaultInputGain;
+    const float trimError = std::abs(trimBuffer.getSample(0, 0) - expectedTrimmed);
+    std::cout << "Combined input/output trim error: " << trimError << '\n';
+    if (trimError > 1.0e-7f)
+    {
+        std::cerr << "Input and output trims did not apply their exact gains\n";
+        return 4;
+    }
+
+    ReverbulatorAudioProcessor driveProcessor;
+    if (auto* mix = driveProcessor.parameters.getParameter("mix"))
+        mix->setValueNotifyingHost(0.0f);
+    if (auto* input = driveProcessor.parameters.getParameter("inputTrim"))
+        input->setValueNotifyingHost(input->convertTo0to1(6.0f));
+    driveProcessor.prepareToPlay(sampleRate, blockSize);
+    juce::AudioBuffer<float> driveBuffer(2, blockSize);
+    driveBuffer.clear();
+    driveBuffer.setSample(0, 0, 0.10f);
+    driveBuffer.setSample(1, 0, 0.10f);
+    driveProcessor.processBlock(driveBuffer, midi);
+    const float driveError = std::abs(driveBuffer.getSample(0, 0)
+        - 0.10f * juce::Decibels::decibelsToGain(6.0f));
+    std::cout << "+6 dB full-roar trim error: " << driveError << '\n';
+    if (driveError > 1.0e-7f)
+    {
+        std::cerr << "Positive input drive range is unavailable\n";
+        return 5;
+    }
+
+    ReverbulatorAudioProcessor limiterProcessor;
+    if (auto* mix = limiterProcessor.parameters.getParameter("mix"))
+        mix->setValueNotifyingHost(0.0f);
+    if (auto* input = limiterProcessor.parameters.getParameter("inputTrim"))
+        input->setValueNotifyingHost(input->convertTo0to1(0.0f));
+    limiterProcessor.prepareToPlay(sampleRate, blockSize);
+    juce::AudioBuffer<float> limiterBuffer(2, blockSize);
+    for (int channel = 0; channel < 2; ++channel)
+        for (int sample = 0; sample < blockSize; ++sample)
+            limiterBuffer.setSample(channel, sample, channel == 0 ? 1.2f : -1.2f);
+    limiterProcessor.processBlock(limiterBuffer, midi);
     const float manualPeak = juce::jmax(
-        dryBuffer.getMagnitude(0, 0, blockSize),
-        dryBuffer.getMagnitude(1, 0, blockSize));
+        limiterBuffer.getMagnitude(0, 0, blockSize),
+        limiterBuffer.getMagnitude(1, 0, blockSize));
     std::cout << "MANUAL over-ceiling output peak: " << manualPeak << '\n';
     if (manualPeak > 0.9670f)
     {
         std::cerr << "MANUAL output bypassed the universal safety limiter\n";
-        return 4;
+        return 6;
     }
 
     return 0;
